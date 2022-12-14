@@ -1,0 +1,57 @@
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+ERROR="${RED}ERROR${NC}"
+
+if [ ! $GW_UTILS_TARGET_DIR ]
+then
+	printf "$ERROR You must set 'GW_UTILS_TARGET_DIR' environment variable"
+	return
+fi
+
+if  [ ! -d .git ] && [ ! -f .git];
+then
+	printf "$ERROR No .git folder found"
+	return
+fi
+
+CURRENT_REPO=$(basename `git rev-parse --show-toplevel`)
+WORKTREES_BASE_PATH="$GW_UTILS_TARGET_DIR/$CURRENT_REPO"
+
+MODIFIER=$1
+PATH_ARG=$2
+
+
+FULL_PATH=''
+COMMIT=''
+
+if [ ! $MODIFIER ]
+then
+	printf "$ERROR You must provide at least one argument"
+	return
+fi
+
+
+if [ $PATH_ARG ]
+then
+	# Validate modifiers
+	if [ $MODIFIER != "-b" ]
+	then
+		printf "$ERROR If two arguments are provided first one must be '-b'"
+		return
+	fi
+
+	WORKTREE_FULL_PATH="$WORKTREES_BASE_PATH/$PATH_ARG"
+	COMMIT=$PATH_ARG
+
+	eval "git worktree add $MODIFIER $COMMIT $WORKTREE_FULL_PATH"
+else
+	WORKTREE_FULL_PATH="$WORKTREES_BASE_PATH/$MODIFIER"
+	COMMIT=$MODIFIER
+
+	echo "git worktree add $WORKTREE_FULL_PATH $COMMIT"
+	eval "git worktree add $WORKTREE_FULL_PATH $COMMIT"
+fi
+
+eval "cd $WORKTREE_FULL_PATH"
+eval "code $WORKTREE_FULL_PATH"

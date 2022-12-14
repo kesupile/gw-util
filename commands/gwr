@@ -1,0 +1,35 @@
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+ERROR="${RED}ERROR${NC}"
+
+if [ ! $GW_UTILS_TARGET_DIR ];
+then
+	printf "$ERROR You must set 'GW_UTILS_TARGET_DIR' environment variable."
+	return
+fi
+
+if  ! [ -d .git ] && ! [ -f .git ];
+then
+	printf "$ERROR No .git folder/file found"
+	return
+fi
+
+WT_TO_DELETE=$1
+CURRENT_REPO=$(basename `git rev-parse --show-toplevel`)
+
+if ! [ $WT_TO_DELETE ]
+then
+    print "$ERROR You must provide 1 argument - the name of the worktree to remove."
+    return
+fi
+
+
+ALL_WORKTREESF=()
+while IFS= read -r line; do
+    ALL_WORKTREES+=( "$line" )
+done < <( git worktree list )
+
+eval "git worktree remove $WT_TO_DELETE"
+
+echo "$WT_TO_DELETE removed"
